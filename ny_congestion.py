@@ -1,8 +1,16 @@
+# ny_congestion.py
+# Builds a dataset of the busiest highway corridors in the Northeast US
+# using real data from the INRIX 2025 Global Traffic Scorecard (Page 19).
+# Corridors are classified by severity based on annual hours lost per driver.
+# Output: ny_chokepoints.csv -- used as a point layer in QGIS
+
+import os
 import pandas as pd
 
-# Source: INRIX 2025 Global Traffic Scorecard, Page 19
-# Top 25 Busiest US Corridors + Northeast Corridor city rankings
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Data pulled directly from INRIX 2025 Global Traffic Scorecard, Page 19
+# Only Northeast Corridor entries are included (CT, NY, MA, PA, MD, DC)
 corridors = {
     'name': [
         'I-95 SB Stamford CT',
@@ -51,11 +59,13 @@ corridors = {
         'PM','AM','PM','AM','PM',
         'PM','PM','AM','AM','AM',
     ],
+    # Hours lost per driver annually at peak hour — INRIX 2025, Page 19
     'hours_lost': [
         133, 94, 93, 81, 64,
         63, 58, 55, 52, 49,
         47, 89, 44, 41, 38,
     ],
+    # National rank from INRIX 2025 Top 25 Busiest Corridors list
     'inrix_us_rank': [
         1, 2, 3, 8, 21,
         22, None, None, None, None,
@@ -76,6 +86,7 @@ corridors = {
 
 df = pd.DataFrame(corridors)
 
+# Classify corridors by severity based on hours lost annually
 def severity(hours):
     if hours >= 90: return 'Severe'
     elif hours >= 60: return 'High'
@@ -84,6 +95,6 @@ def severity(hours):
 
 df['severity'] = df['hours_lost'].apply(severity)
 
-df.to_csv('/Users/snehesh/congestion_env/ny_chokepoints.csv', index=False)
-print(f"Done! {len(df)} real INRIX corridors saved.")
-print(df[['name','peak_hour','hours_lost','severity']].to_string())
+df.to_csv(os.path.join(BASE_DIR, 'ny_chokepoints.csv'), index=False)
+print(f"Done! {len(df)} corridors saved.")
+print(df[['name', 'peak_hour', 'hours_lost', 'severity']].to_string())
